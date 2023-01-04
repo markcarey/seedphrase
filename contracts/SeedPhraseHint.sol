@@ -27,9 +27,16 @@ contract SeedPhraseHint is ERC721, AccessControl {
 
     function safeMint(address to) public payable {
         require(msg.value >= mintPrice, "!value");
-        uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
-        _safeMint(to, tokenId);
+        _safeMint(to, _tokenIdCounter.current());
+    }
+
+    function batchMint(address to, uint256 quantity) public payable {
+        require(msg.value >= mintPrice.mul(quantity), "!value");
+        for (uint256 i = 0; i < quantity; i++) {
+            _tokenIdCounter.increment();
+            _safeMint(to, _tokenIdCounter.current());
+        }
     }
 
     function setMintPrice(uint256 _price) external onlyRole(DEFAULT_ADMIN_ROLE) {

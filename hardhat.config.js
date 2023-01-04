@@ -42,7 +42,8 @@ module.exports = {
    etherscan: {
     apiKey: {
       goerli: ETHERSCAN_API_KEY,
-      arbitrumgoerli: ARBISCAN_API_KEY
+      arbitrumGoerli: ARBISCAN_API_KEY,
+      arbitrumOne: ARBISCAN_API_KEY
     }
   }
 }
