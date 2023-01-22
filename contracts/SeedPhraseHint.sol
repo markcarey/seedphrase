@@ -11,7 +11,9 @@ contract SeedPhraseHint is ERC721, AccessControl {
     using Counters for Counters.Counter;
     using SafeMath for uint256;
 
-    event SeedPhraseGuessed(address winner);
+    event SeedPhraseGuessed(address winner, uint256 prize);
+    event SeasonStarted(address winner);
+    event MintPriceChanged(uint256 price);
 
     bytes32 public constant WINNER_ROLE = keccak256("WINNER_ROLE");
     Counters.Counter private _tokenIdCounter;
@@ -19,6 +21,13 @@ contract SeedPhraseHint is ERC721, AccessControl {
 
     constructor() ERC721("Seed Phrase Hint", "HINT") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        // @dev: mint tokenId 0 to deployer
+        _safeMint(msg.sender, 0);
+        // @dev: mint 10 more to deployer to provide some example HINTs to get things started
+        for (uint256 i = 0; i < 10; i++) {
+            _tokenIdCounter.increment();
+            _safeMint(msg.sender, _tokenIdCounter.current());
+        }
     }
 
     function _baseURI() internal pure override returns (string memory) {
@@ -41,6 +50,7 @@ contract SeedPhraseHint is ERC721, AccessControl {
 
     function setMintPrice(uint256 _price) external onlyRole(DEFAULT_ADMIN_ROLE) {
         mintPrice = _price;
+        emit MintPriceChanged(_price);
     }
 
     function exists(uint256 tokenId) external view returns (bool) {
@@ -49,14 +59,21 @@ contract SeedPhraseHint is ERC721, AccessControl {
 
     function withdraw() external onlyRole(WINNER_ROLE) {
         // @dev: 5% to deployer
-        bool sent = payable(0xD167863Cb021A21B7aEb4d382CC64E038C2B90b2).send(address(this).balance.mul(5).div(100));
+        bool sent = payable(ownerOf(0)).send(address(this).balance.mul(5).div(100));
         require(sent, "!send");
         // @dev: 95% to winner
+        emit SeedPhraseGuessed(msg.sender, address(this).balance);
         sent = payable(msg.sender).send(address(this).balance);
         require(sent, "!send");
-        // @dev revoke WINNER role
+        // @dev revoke WINNER role, so this account cannot withdraw again
         _revokeRole(WINNER_ROLE, msg.sender);
-        emit SeedPhraseGuessed(msg.sender);
+    }
+
+    function grantRole(bytes32 role, address account) public virtual override onlyRole(getRoleAdmin(role)) {
+        super.grantRole(role, account);
+        if (role == WINNER_ROLE) {
+            emit SeasonStarted(account);
+        }
     }
 
     // The following functions are overrides required by Solidity.
