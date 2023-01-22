@@ -31,12 +31,16 @@ module.exports = {
       gasPrice: 1000000000 * 10,
       blockGasLimit: 0x1fffffffffffff
     },
-    arbitrumgoerli: {
+    arbitrumGoerli: {
       url: API_URL_ARBIGOERLI,
       accounts: [`0x${PRIVATE_KEY}`],
       gasMultiplier: 10,
       gasPrice: 1000000000 * 10,
       blockGasLimit: 0x1fffffffffffff
+    },
+    arbitrumOne: {
+      url: API_URL_ARBIGOERLI,
+      accounts: [`0x${PRIVATE_KEY}`]
     }
   },
    etherscan: {
