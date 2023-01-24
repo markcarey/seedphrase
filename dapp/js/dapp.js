@@ -15,10 +15,35 @@ const db = firebase.firestore();
 
 const zeroAddress = "0x0000000000000000000000000000000000000000";
 
-var addr = {};
+const chains = {};
+chains["421613"] = {
+    "key": "arbitrumGoerli",
+    "chainId":  ethers.utils.hexValue(421613),
+    "chainName": "Arbitrum Goerli Testnet",
+    "nativeCurrency": {
+        "name": "ETH",
+        "symbol": "ETH",
+        "decimals": 18
+    },
+    "rpcUrls": ["https://goerli-rollup.arbitrum.io/rpc"],
+    "blockExplorerUrls": ["https://goerli.arbiscan.io/"],
+}
+chains["42161"] = {
+    "key": "arbitrumOne",
+    "chainId":  ethers.utils.hexValue(42161),
+    "chainName": "Arbitrum One",
+    "nativeCurrency": {
+        "name": "ETH",
+        "symbol": "ETH",
+        "decimals": 18
+    },
+    "rpcUrls": ["https://arb1.arbitrum.io/rpc/"],
+    "blockExplorerUrls": ["https://arbiscan.io/"],
+}
 
+var addr = {};
 addr.arbitrumGoerli = {
-    "nftAddress": "0x0BDde82Bfc59eff2d599b003d81083d46B39D60E",
+    "nftAddress": "0x5749029F64e8E9fE0473438D7F4dFA4C379D85a0",
     "evmChainId": 421613,
     "testnet": true,
     "name": "Arbitrum Goerli",
@@ -37,7 +62,6 @@ addr.arbitrumOne = {
     "folder": "",
     "native": "ETH"
 };
-
 
 var chain = "arbitrumGoerli";
 //var chain = "arbitrumOne";
@@ -81,20 +105,6 @@ function setupChain() {
     );
     web3 = AlchemyWeb3.createAlchemyWeb3("wss://"+rpcURL);
 
-    updateImages();
-
-    db.collection("nft").doc(addr[chain].nftAddress).collection('meta').orderBy("token_id", "asc")
-        .onSnapshot((querySnapshot) => {
-            querySnapshot.forEach((doc) => {
-                var meta = doc.data();
-                meta.tokenId = doc.id;
-                console.log(meta);
-                if ( $( "#hint-" + doc.id ).length <= 0 ) {
-                    $("#minted-hints").prepend( getHintHTML(meta) );
-                }
-            });
-    });
-
     preload('https://seedphrase.pictures/img/minting.gif');
 }
 setupChain();
@@ -106,6 +116,13 @@ provider.on("network", async (newNetwork, oldNetwork) => {
         if (chain in addr) {
             console.log("switching to supported chain " + chain);
             setupChain();
+            updateImages(chains[oldNetwork.chainId].key,chain);
+            if ( addr[chain].testnet ) {
+                $("#network").show();
+            } else {
+                $("#network").hide();
+            }
+            loadHints();
         } else {
             // unsupported chain, so switch back
             await switchChain(oldNetwork.chainId);
@@ -113,28 +130,18 @@ provider.on("network", async (newNetwork, oldNetwork) => {
     }
 });
 
-const chains = {};
-chains["421613"] = {
-    "chainId":  web3.utils.toHex(421613),
-    "chainName": "Arbitrum Goerli Testnet",
-    "nativeCurrency": {
-        "name": "ETH",
-        "symbol": "ETH",
-        "decimals": 18
-    },
-    "rpcUrls": ["https://goerli-rollup.arbitrum.io/rpc"],
-    "blockExplorerUrls": ["https://goerli.arbiscan.io/"],
-}
-chains["42161"] = {
-    "chainId":  web3.utils.toHex(42161),
-    "chainName": "Arbitrum One",
-    "nativeCurrency": {
-        "name": "ETH",
-        "symbol": "ETH",
-        "decimals": 18
-    },
-    "rpcUrls": ["https://arb1.arbitrum.io/rpc/"],
-    "blockExplorerUrls": ["https://arbiscan.io/"],
+function loadHints () {
+    db.collection("nft").doc(addr[chain].nftAddress).collection('meta').orderBy("token_id", "asc")
+        .onSnapshot((querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+                var meta = doc.data();
+                meta.tokenId = doc.id;
+                console.log(meta);
+                if ( $( "#hint-" + doc.id ).length <= 0 ) {
+                    $("#minted-hints").prepend( getHintHTML(meta) );
+                }
+            });
+    });
 }
 
 function setChain(chainId) {
@@ -296,13 +303,14 @@ function preload(url) {
 	image.src = url;
 }
 
-function updateImages() {
-    const folder = addr[chain].folder;
+function updateImages(oldChain, newChain) {
+    const oldFolder = addr[oldChain].folder;
+    const newFolder = addr[newChain].folder;
     $("img.hint").each(function() {
         console.log('start on hint image');
         const oldSrc = $(this).attr("src");
-        const baseSrc = oldSrc.replace(folder, '');
-        const newSrc =  folder + baseSrc;
+        const baseSrc = oldSrc.replace(oldFolder, '');
+        const newSrc =  newFolder + baseSrc;
         if (newSrc != oldSrc) {
             console.log('need to replace src on hint img', oldSrc, newSrc);
             $(this).attr("src", newSrc);
@@ -336,6 +344,8 @@ function getHintHTML(meta) {
 }
 
 $( document ).ready(function() {
+
+    loadHints();
 
     $(".connect").click(function(){
         connect();
