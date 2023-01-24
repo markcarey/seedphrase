@@ -262,7 +262,7 @@ async function switchChain(chainId) {
         }
         // handle other "switch" errors
     }
-    setupChain(chainId);
+    setChain(chainId);
     setupChain();
 }
 
