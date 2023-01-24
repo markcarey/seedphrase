@@ -24,6 +24,7 @@ addr.arbitrumGoerli = {
     "name": "Arbitrum Goerli",
     "rpc": "arb-goerli.g.alchemy.com/v2/jb4AhFhyR0X_ChVX5J1f0oWQ6GvJqLK0",
     "slug": "arbitrum-goerli",
+    "folder": "testnet/",
     "native": "ETH"
 };
 addr.arbitrumOne = {
@@ -33,6 +34,7 @@ addr.arbitrumOne = {
     "name": "Arbitrum One",
     "rpc": "arb-mainnet.g.alchemy.com/v2/jb4AhFhyR0X_ChVX5J1f0oWQ6GvJqLK0",
     "slug": "arbitrum",
+    "folder": "",
     "native": "ETH"
 };
 
@@ -79,6 +81,8 @@ function setupChain() {
     );
     web3 = AlchemyWeb3.createAlchemyWeb3("wss://"+rpcURL);
 
+    updateImages();
+
     db.collection("nft").doc(addr[chain].nftAddress).collection('meta').orderBy("token_id", "asc")
         .onSnapshot((querySnapshot) => {
             querySnapshot.forEach((doc) => {
@@ -95,10 +99,17 @@ function setupChain() {
 }
 setupChain();
 
-provider.on("network", (newNetwork, oldNetwork) => {
+provider.on("network", async (newNetwork, oldNetwork) => {
     if (oldNetwork) {
         console.log(newNetwork, oldNetwork);
-        //setupChain();
+        setChain(newNetwork.chainId);
+        if (chain in addr) {
+            console.log("switching to supported chain " + chain);
+            setupChain();
+        } else {
+            // unsupported chain, so switch back
+            await switchChain(oldNetwork.chainId);
+        }
     }
 });
 
@@ -124,6 +135,27 @@ chains["42161"] = {
     },
     "rpcUrls": ["https://arb1.arbitrum.io/rpc/"],
     "blockExplorerUrls": ["https://arbiscan.io/"],
+}
+
+function setChain(chainId) {
+    if (chainId == 80001) {
+        chain = "mumbai";
+    }
+    if (chainId == 420) {
+        chain = "optigoerli";
+    }
+    if (chainId == 5) {
+        chain = "goerli";
+    }
+    if (chainId == 421613) {
+        chain = "arbitrumGoerli";
+    }
+    if (chainId == 42161) {
+        chain = "arbitrumOne";
+    }
+    if (chainId == 1287) {
+        chain = "moonbeam-alpha";
+    }
 }
 
 function abbrAddress(address){
@@ -223,24 +255,7 @@ async function switchChain(chainId) {
         }
         // handle other "switch" errors
     }
-    if (chainId == 80001) {
-        chain = "mumbai";
-    }
-    if (chainId == 420) {
-        chain = "optigoerli";
-    }
-    if (chainId == 5) {
-        chain = "goerli";
-    }
-    if (chainId == 421613) {
-        chain = "arbitrumGoerli";
-    }
-    if (chainId == 42161) {
-        chain = "arbitrumOne";
-    }
-    if (chainId == 1287) {
-        chain = "moonbeam-alpha";
-    }
+    setupChain(chainId);
     setupChain();
 }
 
@@ -279,6 +294,20 @@ function getMarketplaceURL(currentChain, tokenId) {
 function preload(url) {
     var image = new Image();
 	image.src = url;
+}
+
+function updateImages() {
+    const folder = addr[chain].folder;
+    $("img.hint").each(function() {
+        console.log('start on hint image');
+        const oldSrc = $(this).attr("src");
+        const baseSrc = oldSrc.replace(folder, '');
+        const newSrc =  folder + baseSrc;
+        if (newSrc != oldSrc) {
+            console.log('need to replace src on hint img', oldSrc, newSrc);
+            $(this).attr("src", newSrc);
+        }
+    });
 }
 
 function getHintHTML(meta) {
