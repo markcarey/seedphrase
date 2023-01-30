@@ -328,15 +328,6 @@ function reset() {
     tokenId = null;
 }
 
-function ipfsToHttp(ipfs) {
-    var http = "";
-    var cid = ipfs.replace("ipfs://", "");
-    //http = "https://" + cid + ".ipfs.dweb.link";
-    //http = "https://ipfs.io/ipfs/" + cid;
-    http = "https://nftstorage.link/ipfs/" + cid;
-    return http;
-}
-
 function getMarketplaceURL(currentChain, tokenId) {
     const slug = addr[currentChain].slug;
     const nftAddress = addr[currentChain].nftAddress;
