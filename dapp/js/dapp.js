@@ -1,3 +1,5 @@
+const { ethers } = require("hardhat");
+
 const firebaseConfig = {
     apiKey: "AIzaSyCok6-ZTyyTfPISEHqeIqRHuEaew6hiDW0",
     authDomain: "slash-translate.firebaseapp.com",
@@ -14,6 +16,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 const zeroAddress = "0x0000000000000000000000000000000000000000";
+const WINNER_ROLE = "0x50d7f4cd6d71ed14bb09203429e7cf4d8d07824ec09d3fa90c05c12b548b07f7";
 
 const chains = {};
 chains["421613"] = {
@@ -219,6 +222,11 @@ async function connect(){
         }
         $(".address").text(abbrAddress());
         $("#offcanvas").find("button").click();
+        const isWinner = await hint.hasRole(WINNER_ROLE, accounts[0]);
+        if (isWinner) {
+            $("#winner").text("You have guessed the seed phrase correctly!");
+            $("#nav-claim").click();
+        }
     } else {
         // The user doesn't have Metamask installed.
         console.log("window.ethereum false");
@@ -267,10 +275,19 @@ async function mint(quantity) {
 async function updateStats() {
     //var total = await hint.totalSupply();
     var prize = await provider.getBalance(hint.address);
+    console.log("prize", prize);
     //$("#total-hints").text(total);
-    $("#prize").text(ethers.util.formatUnits(prize));
+    $("#prize").text(ethers.utils.formatEther(prize));
 }
 
+async function claim() {
+    const tx =  await hint.connect(ethersSigner).withdraw();
+    let winFilter = hint.filters.SeedPhraseGuessed();
+    hint.on(winFilter, async (winner, prize, event) => {
+        $("$claim-button").text("You won " + ethers.utils.formatEther(prize) + "ETH");
+    });
+    await tx.wait();
+}
 
 async function switchChain(chainId) {
     try {
@@ -392,6 +409,11 @@ $( document ).ready(function() {
         $(this).text("Minting...");
         const quantity = $("#quantity").val();
         mint(quantity);
+        return false;
+    });
+
+    $("#claim-button").click(function(){
+        claim();
         return false;
     });
 
