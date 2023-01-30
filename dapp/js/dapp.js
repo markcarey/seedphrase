@@ -1,5 +1,3 @@
-const { ethers } = require("hardhat");
-
 const firebaseConfig = {
     apiKey: "AIzaSyCok6-ZTyyTfPISEHqeIqRHuEaew6hiDW0",
     authDomain: "slash-translate.firebaseapp.com",
@@ -225,6 +223,7 @@ async function connect(){
         const isWinner = await hint.hasRole(WINNER_ROLE, accounts[0]);
         if (isWinner) {
             $("#winner").text("You have guessed the seed phrase correctly!");
+            $("#claim-button").removeClass("disabled");
             $("#nav-claim").click();
         }
     } else {
@@ -275,18 +274,24 @@ async function mint(quantity) {
 async function updateStats() {
     //var total = await hint.totalSupply();
     var prize = await provider.getBalance(hint.address);
-    console.log("prize", prize);
+    //console.log("prize", prize);
     //$("#total-hints").text(total);
     $("#prize").text(ethers.utils.formatEther(prize));
 }
 
 async function claim() {
-    const tx =  await hint.connect(ethersSigner).withdraw();
-    let winFilter = hint.filters.SeedPhraseGuessed();
-    hint.on(winFilter, async (winner, prize, event) => {
-        $("$claim-button").text("You won " + ethers.utils.formatEther(prize) + "ETH");
-    });
-    await tx.wait();
+    const isWinner = await hint.hasRole(WINNER_ROLE, accounts[0]);
+    if (isWinner) {
+        const tx =  await hint.connect(ethersSigner).withdraw();
+        let winFilter = hint.filters.SeedPhraseGuessed();
+        hint.on(winFilter, async (winner, prize, event) => {
+            $("$claim-button").text("You won " + ethers.utils.formatEther(prize) + "ETH");
+        });
+        await tx.wait();
+    } else {
+        $("#winner").text("The connected address is not a winner :(");
+        $("#claim-button").addClass("disabled");
+    }    
 }
 
 async function switchChain(chainId) {
