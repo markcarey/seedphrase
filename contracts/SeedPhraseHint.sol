@@ -57,6 +57,10 @@ contract SeedPhraseHint is ERC721, AccessControl {
         return _exists(tokenId);
     }
 
+    function totalSupply() external view returns (uint256) {
+        return _tokenIdCounter.current();
+    }
+
     function withdraw() external onlyRole(WINNER_ROLE) {
         // @dev: 5% to deployer
         bool sent = payable(ownerOf(0)).send(address(this).balance.mul(5).div(100));
