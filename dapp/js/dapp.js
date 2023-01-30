@@ -107,6 +107,7 @@ function setupChain() {
     web3 = AlchemyWeb3.createAlchemyWeb3("wss://"+rpcURL);
 
     preload('https://seedphrase.pictures/img/minting.gif');
+    updateStats();
 }
 setupChain();
 
@@ -261,6 +262,13 @@ async function mint(quantity) {
         }
     });
     await tx.wait();
+}
+
+async function updateStats() {
+    //var total = await hint.totalSupply();
+    var prize = await provider.getBalance(hint.address);
+    //$("#total-hints").text(total);
+    $("#prize").text(ethers.util.formatUnits(prize));
 }
 
 
