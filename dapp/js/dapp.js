@@ -69,6 +69,7 @@ var web3, hint;
 var accounts = [];
 var provider, ethersSigner;
 var hints = [];
+var resetHints;
 
 const mintPrice = 0.005;
 const baseUrl = 'https://api.seedphrase.pictures/';
@@ -112,8 +113,12 @@ setupChain();
 provider.on("network", async (newNetwork, oldNetwork) => {
     if (oldNetwork) {
         console.log(newNetwork, oldNetwork);
+        const oldChain = chain;
         setChain(newNetwork.chainId);
-        if (chain in addr) {
+        if (chain == oldChain) {
+            // they switched to unsupported chain, so switch back
+            await switchChain(addr[chain].evmChainId);
+        } else {
             console.log("switching to supported chain " + chain);
             setupChain();
             updateImages(chains[oldNetwork.chainId].key,chain);
@@ -122,23 +127,29 @@ provider.on("network", async (newNetwork, oldNetwork) => {
             } else {
                 $("#network").hide();
             }
+            $("#minted-hints").html('');
             loadHints();
-        } else {
-            // unsupported chain, so switch back
-            await switchChain(oldNetwork.chainId);
         }
     }
 });
 
 function loadHints () {
-    db.collection("nft").doc(addr[chain].nftAddress).collection('meta').orderBy("token_id", "asc")
+    if (resetHints) {
+        resetHints();
+    }
+    resetHints = db.collection("nft").doc(addr[chain].nftAddress).collection('meta').orderBy("token_id", "asc")
         .onSnapshot((querySnapshot) => {
             querySnapshot.forEach((doc) => {
                 var meta = doc.data();
                 meta.tokenId = doc.id;
-                console.log(meta);
+                //if ( $("#tokenid").text() == doc.id.toString() ) {
+                //    $("#mint-image").attr("src", meta.image);
+                //}
+                //console.log(meta);
                 if ( $( "#hint-" + doc.id ).length <= 0 ) {
                     $("#minted-hints").prepend( getHintHTML(meta) );
+                } else {
+                    $( "#hint-" + doc.id ).replaceWith( getHintHTML(meta) );
                 }
             });
     });
@@ -146,13 +157,13 @@ function loadHints () {
 
 function setChain(chainId) {
     if (chainId == 80001) {
-        chain = "mumbai";
+        //chain = "mumbai";
     }
     if (chainId == 420) {
-        chain = "optigoerli";
+        //chain = "optigoerli";
     }
     if (chainId == 5) {
-        chain = "goerli";
+        //chain = "goerli";
     }
     if (chainId == 421613) {
         chain = "arbitrumGoerli";
@@ -161,7 +172,7 @@ function setChain(chainId) {
         chain = "arbitrumOne";
     }
     if (chainId == 1287) {
-        chain = "moonbeam-alpha";
+        //chain = "moonbeam-alpha";
     }
 }
 
@@ -179,10 +190,22 @@ async function connect(){
         ethersSigner = provider.getSigner();
         accounts[0] = await ethersSigner.getAddress();
         console.log(accounts);
-        const userChain = await ethereum.request({ method: 'eth_chainId' });
-        if (web3.utils.hexToNumber(userChain) != chain) {
+
+        const userChainHex = await ethereum.request({ method: 'eth_chainId' });
+        const userChainInt = parseInt(userChainHex, 16);
+        console.log("userChainInt", userChainInt);
+        if (userChainInt in chains) {
+            // supported chain
+            if (userChainInt != addr[chain].evmChainId) {
+                // connected to supported chain but not the current chain
+                setChain(userChainInt);
+                setupChain();
+                loadHints();
+            }
+        } else {
             await switchChain(addr[chain].evmChainId);
         }
+
         var sig = Cookies.get('__session');
         if (!sig) {
             console.log('no sig');
@@ -220,7 +243,9 @@ async function mint(quantity) {
     hint.on(mintFilter, async (from, to, id, event) => { 
         tokenId = id;
         console.log('tokenId:' + tokenId);
-        const imageURL = `${baseUrl}images/${tokenId}.png`;
+        const folder = addr[chain].folder;
+        const imageURL = `${baseUrl}${folder}images/${tokenId}.png`;
+        preload(imageURL);
         $("#mint-image").attr("src", imageURL);
         $("#tokenid").text(tokenId);
         $("#mint-title").text("");
@@ -307,12 +332,12 @@ function updateImages(oldChain, newChain) {
     const oldFolder = addr[oldChain].folder;
     const newFolder = addr[newChain].folder;
     $("img.hint").each(function() {
-        console.log('start on hint image');
+        //console.log('start on hint image');
         const oldSrc = $(this).attr("src");
         const baseSrc = oldSrc.replace(oldFolder, '');
         const newSrc =  newFolder + baseSrc;
         if (newSrc != oldSrc) {
-            console.log('need to replace src on hint img', oldSrc, newSrc);
+            //console.log('need to replace src on hint img', oldSrc, newSrc);
             $(this).attr("src", newSrc);
         }
     });
