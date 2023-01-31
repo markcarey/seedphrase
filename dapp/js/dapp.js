@@ -283,7 +283,7 @@ async function updateStats() {
     var total = await hint.totalSupply();
     var prize = await provider.getBalance(hint.address);
     //console.log("prize", prize);
-    $("#total-hints").text(total);
+    $("#total-minted").text(total);
     $("#prize").text(ethers.utils.formatEther(prize));
 }
 
