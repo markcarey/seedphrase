@@ -17,7 +17,10 @@ contract SeedPhraseHint is ERC721, AccessControl {
 
     bytes32 public constant WINNER_ROLE = keccak256("WINNER_ROLE");
     Counters.Counter private _tokenIdCounter;
+
+    // @dev defaults
     uint256 mintPrice = 0.005 ether;
+    string baseURI = "https://api.seedphrase.pictures/meta/";
 
     constructor() ERC721("Seed Phrase Hint", "HINT") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -30,8 +33,8 @@ contract SeedPhraseHint is ERC721, AccessControl {
         }
     }
 
-    function _baseURI() internal pure override returns (string memory) {
-        return "https://api.seedphrase.pictures/meta/";
+    function _baseURI() internal view override returns (string memory) {
+        return baseURI;
     }
 
     function safeMint(address to) public payable {
@@ -51,6 +54,10 @@ contract SeedPhraseHint is ERC721, AccessControl {
     function setMintPrice(uint256 _price) external onlyRole(DEFAULT_ADMIN_ROLE) {
         mintPrice = _price;
         emit MintPriceChanged(_price);
+    }
+
+    function setBaseURI(string calldata _uri) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        baseURI = _uri;
     }
 
     function exists(uint256 tokenId) external view returns (bool) {
