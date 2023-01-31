@@ -18,7 +18,6 @@ const WINNER_ROLE = "0x50d7f4cd6d71ed14bb09203429e7cf4d8d07824ec09d3fa90c05c12b5
 
 const chains = {};
 chains["421613"] = {
-    "key": "arbitrumGoerli",
     "chainId":  ethers.utils.hexValue(421613),
     "chainName": "Arbitrum Goerli Testnet",
     "nativeCurrency": {
@@ -30,7 +29,6 @@ chains["421613"] = {
     "blockExplorerUrls": ["https://goerli.arbiscan.io/"],
 }
 chains["42161"] = {
-    "key": "arbitrumOne",
     "chainId":  ethers.utils.hexValue(42161),
     "chainName": "Arbitrum One",
     "nativeCurrency": {
@@ -44,7 +42,7 @@ chains["42161"] = {
 
 var addr = {};
 addr.arbitrumGoerli = {
-    "nftAddress": "0x5749029F64e8E9fE0473438D7F4dFA4C379D85a0",
+    "nftAddress": "0x50362024Ba9979Cb3b903b85666B1309C6EdE236",
     "evmChainId": 421613,
     "testnet": true,
     "name": "Arbitrum Goerli",
@@ -92,6 +90,15 @@ for (let i = 0; i < allChains.length; i++) {
     }
 }
 
+function getChainKey(chainId) {
+    if (chainId.toString() == "42161" ) {
+        return 'arbitrumOne';
+    }
+    if (chainId.toString() == "421613" ) {
+        return 'arbitrumGoerli';
+    }
+}
+
 function setupChain() {
     var rpcURL = addr[chain].rpc;
     const prov = {"url": "https://"+rpcURL};
@@ -114,16 +121,16 @@ setupChain();
 
 provider.on("network", async (newNetwork, oldNetwork) => {
     if (oldNetwork) {
-        console.log(newNetwork, oldNetwork);
+        //console.log(newNetwork, oldNetwork);
         const oldChain = chain;
         setChain(newNetwork.chainId);
         if (chain == oldChain) {
             // they switched to unsupported chain, so switch back
             await switchChain(addr[chain].evmChainId);
         } else {
-            console.log("switching to supported chain " + chain);
+            //console.log("switching to supported chain " + chain);
             setupChain();
-            updateImages(chains[oldNetwork.chainId].key,chain);
+            updateImages(getChainKey(oldNetwork.chainId),chain);
             if ( addr[chain].testnet ) {
                 $("#network").show();
             } else {
@@ -272,10 +279,10 @@ async function mint(quantity) {
 }
 
 async function updateStats() {
-    //var total = await hint.totalSupply();
+    var total = await hint.totalSupply();
     var prize = await provider.getBalance(hint.address);
     //console.log("prize", prize);
-    //$("#total-hints").text(total);
+    $("#total-hints").text(total);
     $("#prize").text(ethers.utils.formatEther(prize));
 }
 
@@ -285,7 +292,7 @@ async function claim() {
         const tx =  await hint.connect(ethersSigner).withdraw();
         let winFilter = hint.filters.SeedPhraseGuessed();
         hint.on(winFilter, async (winner, prize, event) => {
-            $("$claim-button").text("You won " + ethers.utils.formatEther(prize) + "ETH");
+            $("#claim-button").text("You won " + ethers.utils.formatEther(prize) + "ETH");
         });
         await tx.wait();
     } else {
@@ -298,16 +305,18 @@ async function switchChain(chainId) {
     try {
         await ethereum.request({
             method: 'wallet_switchEthereumChain',
-            params: [{ chainId: web3.utils.toHex(chainId) }],
+            params: [{ chainId: web3.utils.toHex(chainId) }]
         });
     } catch (switchError) {
+        console.log(switchError);
         // This error code indicates that the chain has not been added to MetaMask.
         if (switchError.code === 4902) {
             try {
+                var switchParams = chains[chainId];
                 await ethereum.request({
                     method: 'wallet_addEthereumChain',
                     params: [
-                        chains[chainId]
+                        switchParams
                     ],
                 });
                 switchChain(chainId);
