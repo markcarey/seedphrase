@@ -268,9 +268,10 @@ async function mint(quantity) {
         $("#mint-title-label").text("Minted!");
         $("#birth-chain, #color, #wearing").parents(".mint-field").hide();
         $("#mint-button").text("Minted!");
-        await sleep(2000);
+        await updateStats();
+        await sleep(1000);
         $("#mint-button").attr("href", getMarketplaceURL(chain, tokenId)).text("View on Opensea");
-        await sleep(2000);
+        await sleep(1000);
         $("#reset-button").show();
         if ( quantity > 1) {
             $("#viewall-button").show();
