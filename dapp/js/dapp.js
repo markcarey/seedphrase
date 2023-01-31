@@ -115,7 +115,6 @@ function setupChain() {
     web3 = AlchemyWeb3.createAlchemyWeb3("wss://"+rpcURL);
 
     preload('https://seedphrase.pictures/img/minting.gif');
-    updateStats();
 }
 setupChain();
 
@@ -137,6 +136,7 @@ provider.on("network", async (newNetwork, oldNetwork) => {
                 $("#network").hide();
             }
             $("#minted-hints").html('');
+            updateStats();
             loadHints();
         }
     }
@@ -209,6 +209,7 @@ async function connect(){
                 // connected to supported chain but not the current chain
                 setChain(userChainInt);
                 setupChain();
+                updateStats();
                 loadHints();
             }
         } else {
