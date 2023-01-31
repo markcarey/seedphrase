@@ -245,6 +245,9 @@ async function mint(quantity) {
     console.log(chain);
     console.log(addr[chain].nftAddress);
     console.log(addr[chain].rpc);
+    if (!ethersSigner) {
+        await connect();
+    }
     var tx;
     const valueETH = quantity * mintPrice;
     const valueWEI = ethers.utils.parseUnits(valueETH.toString(), "ether");
@@ -256,6 +259,7 @@ async function mint(quantity) {
     }
     $("#mint-image").attr("src", 'https://seedphrase.pictures/img/minting.gif');
     let mintFilter = hint.filters.Transfer(zeroAddress, accounts[0]);
+    hint.off(mintFilter);
     hint.on(mintFilter, async (from, to, id, event) => { 
         tokenId = id;
         console.log('tokenId:' + tokenId);
