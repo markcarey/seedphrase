@@ -69,6 +69,7 @@ var accounts = [];
 var provider, ethersSigner;
 var hints = [];
 var resetHints;
+var batchCount = 0;
 
 const mintPrice = 0.005;
 const baseUrl = 'https://api.seedphrase.pictures/';
@@ -260,6 +261,7 @@ async function mint(quantity) {
     $("#mint-image").attr("src", 'https://seedphrase.pictures/img/minting.gif');
     let mintFilter = hint.filters.Transfer(zeroAddress, accounts[0]);
     hint.off(mintFilter);
+    batchCount = 0;
     hint.on(mintFilter, async (from, to, id, event) => { 
         tokenId = id;
         console.log('tokenId:' + tokenId);
@@ -272,7 +274,10 @@ async function mint(quantity) {
         $("#mint-title-label").text("Minted!");
         $("#birth-chain, #color, #wearing").parents(".mint-field").hide();
         $("#mint-button").text("Minted!");
-        await updateStats();
+        batchCount++;
+        if (batchCount == quantity) {
+            await updateStats();
+        }
         await sleep(1000);
         $("#mint-button").attr("href", getMarketplaceURL(chain, tokenId)).text("View on Opensea");
         await sleep(1000);
