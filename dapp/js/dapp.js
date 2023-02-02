@@ -42,7 +42,7 @@ chains["42161"] = {
 
 var addr = {};
 addr.arbitrumGoerli = {
-    "nftAddress": "0x50362024Ba9979Cb3b903b85666B1309C6EdE236",
+    "nftAddress": "0xC825dd6c5742532b2a30591eea09017A9a6c9d8f",
     "evmChainId": 421613,
     "testnet": true,
     "name": "Arbitrum Goerli",
