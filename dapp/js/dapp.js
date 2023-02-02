@@ -62,8 +62,8 @@ addr.arbitrumOne = {
     "native": "ETH"
 };
 
-var chain = "arbitrumGoerli";
-//var chain = "arbitrumOne";
+//var chain = "arbitrumGoerli";
+var chain = "arbitrumOne";
 var web3, hint;
 var accounts = [];
 var provider, ethersSigner;
