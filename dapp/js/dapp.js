@@ -210,6 +210,11 @@ async function connect(){
                 // connected to supported chain but not the current chain
                 setChain(userChainInt);
                 setupChain();
+                if ( addr[chain].testnet ) {
+                    $("#network").show();
+                } else {
+                    $("#network").hide();
+                }
                 await updateStats();
                 loadHints();
             }
@@ -386,7 +391,7 @@ function updateImages(oldChain, newChain) {
 
 function getHintHTML(meta) {
     var html = ''
-    var position = 0;
+    var position = "n/a";
     for (let i = 0; i < meta.attributes.length; i++) {
         if (meta.attributes[i]["trait_type"] == "Position") {
             position = meta.attributes[i].value;
