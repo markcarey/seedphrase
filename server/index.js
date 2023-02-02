@@ -73,6 +73,7 @@ function getConfig(network) {
       provider
     );
     return {
+      "seed": seed,
       "nftAddress": process.env.SEED_PICTURES_ADDR,
       "phrase": process.env.SEED_PHRASE,  // stored as a "secret" (https://cloud.google.com/functions/docs/configuring/secrets)
       "style": "digital art",
@@ -163,8 +164,9 @@ function getPromptAndMeta(id, config) {
     "external_url": "https://seedphrase.pictures", 
     "image": `https://api.seedphrase.pictures/${folder}images/${id}.png`,
     "seller_fee_basis_points": 1000,
-    "fee_recipient": process.env.SIDEDOOR_COLD,
+    "fee_recipient": process.env.SEED_DEPLOYER,
     "reveal_after": moment().utc().unix() + revealDelay,
+    "season": season,
     "token_id": id,
     "attributes": [
         {
@@ -189,6 +191,7 @@ function getPromptAndMeta(id, config) {
     if (revealPosition) {
       // get position of the word in the seed phrase
       const pos = _.indexOf(phraseAsArray, shortArray[0]) + 1;
+      meta.position = pos;
       meta.attributes.push({
         "trait_type": "Position",
         "value": pos.toString()
