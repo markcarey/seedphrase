@@ -6,7 +6,7 @@ require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-web3");
 require("@nomiclabs/hardhat-waffle");
-const { API_URL_GOERLI, API_URL_ARBIGOERLI, PRIVATE_KEY, ETHERSCAN_API_KEY, ARBISCAN_API_KEY } = process.env;
+const { API_URL_GOERLI, API_URL_ARBIGOERLI, API_URL_ARBITRUM, PRIVATE_KEY, ETHERSCAN_API_KEY, ARBISCAN_API_KEY } = process.env;
 
 module.exports = {
   solidity: {
@@ -39,7 +39,7 @@ module.exports = {
       blockGasLimit: 0x1fffffffffffff
     },
     arbitrumOne: {
-      url: API_URL_ARBIGOERLI,
+      url: API_URL_ARBITRUM,
       accounts: [`0x${PRIVATE_KEY}`]
     }
   },
