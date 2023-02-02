@@ -210,16 +210,16 @@ async function connect(){
                 // connected to supported chain but not the current chain
                 setChain(userChainInt);
                 setupChain();
-                if ( addr[chain].testnet ) {
-                    $("#network").show();
-                } else {
-                    $("#network").hide();
-                }
                 await updateStats();
                 loadHints();
             }
         } else {
             await switchChain(addr[chain].evmChainId);
+        }
+        if ( addr[chain].testnet ) {
+            $("#network").show();
+        } else {
+            $("#network").hide();
         }
 
         var sig = Cookies.get('__session');
