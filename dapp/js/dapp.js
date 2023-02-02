@@ -81,8 +81,8 @@ const sleep = (milliseconds) => {
     return new Promise(resolve => setTimeout(resolve, milliseconds))
 };
 
-//var allChains = ["arbitrumGoerli", "arbitrumOne"];
-var allChains = ["arbitrumGoerli"];
+var allChains = ["arbitrumGoerli", "arbitrumOne"];
+//var allChains = ["arbitrumGoerli"];
 for (let i = 0; i < allChains.length; i++) {
     if ( addr[chain].nftAddress ) {
         var thisChain = allChains[i];
@@ -104,7 +104,9 @@ function setupChain() {
     var rpcURL = addr[chain].rpc;
     const prov = {"url": "https://"+rpcURL};
     provider = new ethers.providers.JsonRpcProvider(prov);
-    provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+    if (window.ethereum) {
+        provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+    }
     var wssProvider = new ethers.providers.WebSocketProvider(
         "wss://" + rpcURL
     );
@@ -114,8 +116,8 @@ function setupChain() {
         wssProvider
     );
     web3 = AlchemyWeb3.createAlchemyWeb3("wss://"+rpcURL);
-
     preload('https://seedphrase.pictures/img/minting.gif');
+    preload('https://seedphrase.pictures/img/not-revealed.png');
 }
 setupChain();
 
