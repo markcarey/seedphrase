@@ -118,6 +118,7 @@ function setupChain() {
     web3 = AlchemyWeb3.createAlchemyWeb3("wss://"+rpcURL);
     preload('https://seedphrase.pictures/img/minting.gif');
     preload('https://seedphrase.pictures/img/not-revealed.png');
+    updateStats();
 }
 setupChain();
 
